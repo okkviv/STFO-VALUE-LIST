@@ -1,0 +1,635 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sword Value List</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <style>
+        :root {
+            --godly: #ff4d4d;
+            --limited: #4da6ff;
+            --other: #8c8c8c;
+            --bg-primary: #121212;
+            --bg-secondary: #1e1e1e;
+            --bg-tertiary: #2a2a2a;
+            --text-primary: #e0e0e0;
+            --text-secondary: #b0b0b0;
+            --border-color: #333;
+            --shadow-color: rgba(0, 0, 0, 0.5);
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: var(--bg-primary);
+            color: var(--text-primary);
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        
+        header {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+        
+        h1 {
+            color: var(--text-primary);
+            margin-bottom: 10px;
+        }
+        
+        .controls {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            justify-content: center;
+            margin-bottom: 20px;
+            align-items: center;
+        }
+        
+        .view-toggle, .sort-options, .rarity-filter {
+            display: flex;
+            gap: 10px;
+            background: var(--bg-secondary);
+            padding: 10px 15px;
+            border-radius: 8px;
+            box-shadow: 0 2px 5px var(--shadow-color);
+            align-items: center;
+            border: 1px solid var(--border-color);
+        }
+        
+        button {
+            background: #3a5a80;
+            color: var(--text-primary);
+            border: none;
+            padding: 8px 15px;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        
+        button:hover {
+            background: #4a6fa5;
+        }
+        
+        button.active {
+            background: #2c3e50;
+            box-shadow: inset 0 0 5px rgba(0,0,0,0.3);
+        }
+        
+        select {
+            padding: 8px;
+            border-radius: 5px;
+            border: 1px solid var(--border-color);
+            background: var(--bg-tertiary);
+            color: var(--text-primary);
+        }
+        
+        /* List View */
+        .list-view {
+            display: none;
+            flex-direction: column;
+            gap: 10px;
+        }
+        
+        .list-view.active {
+            display: flex;
+        }
+        
+        .sword-item.list {
+            display: flex;
+            align-items: center;
+            background: var(--bg-secondary);
+            padding: 15px;
+            border-radius: 8px;
+            box-shadow: 0 2px 5px var(--shadow-color);
+            transition: transform 0.2s;
+            border-left: 4px solid transparent;
+        }
+        
+        .sword-item.list:hover {
+            transform: translateY(-3px);
+            background: var(--bg-tertiary);
+        }
+        
+        .sword-item.list img {
+            width: 60px;
+            height: 60px;
+            object-fit: contain;
+            margin-right: 15px;
+            filter: drop-shadow(0 0 5px rgba(255,255,255,0.1));
+        }
+        
+        .sword-info {
+            flex-grow: 1;
+        }
+        
+        .sword-name {
+            font-weight: bold;
+            font-size: 1.1rem;
+            margin-bottom: 5px;
+        }
+        
+        .sword-value {
+            font-weight: bold;
+            color: var(--text-secondary);
+        }
+        
+        /* Grid View */
+        .grid-view {
+            display: none;
+            grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+            gap: 15px;
+        }
+        
+        .grid-view.active {
+            display: grid;
+        }
+        
+        .sword-item.grid {
+            background: var(--bg-secondary);
+            border-radius: 8px;
+            padding: 15px;
+            text-align: center;
+            box-shadow: 0 2px 5px var(--shadow-color);
+            transition: all 0.2s;
+            border-left: 4px solid transparent;
+        }
+        
+        .sword-item.grid:hover {
+            transform: translateY(-5px);
+            background: var(--bg-tertiary);
+        }
+        
+        .sword-item.grid img {
+            width: 100%;
+            height: 100px;
+            object-fit: contain;
+            margin-bottom: 10px;
+            filter: drop-shadow(0 0 5px rgba(255,255,255,0.1));
+        }
+        
+        /* Rarity Styling */
+        .godly {
+            border-left-color: var(--godly);
+        }
+        
+        .limited {
+            border-left-color: var(--limited);
+        }
+        
+        .other {
+            border-left-color: var(--other);
+        }
+        
+        .rarity-label {
+            display: inline-block;
+            padding: 3px 8px;
+            border-radius: 4px;
+            font-size: 0.8rem;
+            font-weight: bold;
+            color: white;
+            margin-left: 10px;
+        }
+        
+        .godly-label {
+            background-color: var(--godly);
+        }
+        
+        .limited-label {
+            background-color: var(--limited);
+        }
+        
+        .other-label {
+            background-color: var(--other);
+        }
+        
+        /* Modal */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.8);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+        }
+        
+        .modal-content {
+            background: var(--bg-secondary);
+            padding: 25px;
+            border-radius: 10px;
+            max-width: 500px;
+            width: 90%;
+            max-height: 90vh;
+            overflow-y: auto;
+            position: relative;
+            border: 1px solid var(--border-color);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.5);
+        }
+        
+        .close-modal {
+            position: absolute;
+            top: 10px;
+            right: 15px;
+            font-size: 1.5rem;
+            cursor: pointer;
+            color: var(--text-secondary);
+            transition: color 0.2s;
+        }
+        
+        .close-modal:hover {
+            color: var(--text-primary);
+        }
+        
+        .modal-img {
+            width: 100%;
+            max-height: 200px;
+            object-fit: contain;
+            margin-bottom: 15px;
+            filter: drop-shadow(0 0 10px rgba(255,255,255,0.2));
+        }
+        
+        .rating {
+            display: flex;
+            justify-content: space-between;
+            margin: 15px 0;
+        }
+        
+        .rating-item {
+            text-align: center;
+            flex: 1;
+        }
+        
+        .rating-bar {
+            height: 10px;
+            background: var(--bg-primary);
+            border-radius: 5px;
+            margin-top: 5px;
+            overflow: hidden;
+        }
+        
+        .rating-fill {
+            height: 100%;
+            background: #4a6fa5;
+            box-shadow: inset 0 0 5px rgba(255,255,255,0.2);
+        }
+        
+        /* Responsive */
+        @media (max-width: 768px) {
+            .grid-view {
+                grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+            }
+            
+            .controls {
+                flex-direction: column;
+                align-items: stretch;
+            }
+            
+            .view-toggle, .sort-options, .rarity-filter {
+                justify-content: center;
+            }
+            
+            .sword-item.list img {
+                width: 50px;
+                height: 50px;
+            }
+            
+            .sword-name {
+                font-size: 1rem;
+            }
+        }
+        
+        @media (max-width: 480px) {
+            .grid-view {
+                grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+                gap: 10px;
+            }
+            
+            .sword-item.grid {
+                padding: 10px;
+            }
+            
+            .sword-item.grid img {
+                height: 80px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>Sword Value List</h1>
+        </header>
+        
+        <div class="controls">
+            <div class="view-toggle">
+                <span>View:</span>
+                <button id="list-view-btn" class="active"><i class="fas fa-list"></i> List</button>
+                <button id="grid-view-btn"><i class="fas fa-th-large"></i> Grid</button>
+            </div>
+            
+            <div class="sort-options">
+                <span>Sort by:</span>
+                <select id="sort-select">
+                    <option value="name">Alphabetical</option>
+                    <option value="value">Value</option>
+                    <option value="rarity">Rarity</option>
+                </select>
+            </div>
+            
+            <div class="rarity-filter">
+                <span>Filter:</span>
+                <button id="all-btn" class="active">All</button>
+                <button id="godly-btn">Godlies</button>
+                <button id="limited-btn">Limiteds</button>
+                <button id="other-btn">Others</button>
+            </div>
+        </div>
+        
+        <div class="list-view active" id="sword-list">
+            <!-- Sword items will be inserted here by JavaScript -->
+        </div>
+        
+        <div class="grid-view" id="sword-grid">
+            <!-- Sword items will be inserted here by JavaScript -->
+        </div>
+    </div>
+    
+    <div class="modal" id="sword-modal">
+        <div class="modal-content">
+            <span class="close-modal">&times;</span>
+            <img src="" alt="Sword Image" class="modal-img" id="modal-img">
+            <h2 id="modal-name"></h2>
+            <div id="modal-rarity"></div>
+            <div class="sword-value" id="modal-value"></div>
+            <p id="modal-description"></p>
+            
+            <div class="rating">
+                <div class="rating-item">
+                    <div>Demand</div>
+                    <div class="rating-bar">
+                        <div class="rating-fill" id="demand-bar"></div>
+                    </div>
+                </div>
+                <div class="rating-item">
+                    <div>Looks</div>
+                    <div class="rating-bar">
+                        <div class="rating-fill" id="looks-bar"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        // Sample sword data
+        const swords = [
+            {
+                name: "Darkbringer",
+                image: "https://example.com/darkbringer.png",
+                value: "1500",
+                rarity: "godly",
+                description: "A powerful sword with dark energy emanating from its blade.",
+                demand: 90,
+                looks: 95
+            },
+            {
+                name: "Lightbringer",
+                image: "https://example.com/lightbringer.png",
+                value: "1450",
+                rarity: "godly",
+                description: "The counterpart to Darkbringer, radiating pure light energy.",
+                demand: 85,
+                looks: 90
+            },
+            {
+                name: "Hallowscythe",
+                image: "https://example.com/hallowscythe.png",
+                value: "1200",
+                rarity: "limited",
+                description: "A limited edition scythe from a Halloween event.",
+                demand: 80,
+                looks: 85
+            },
+            {
+                name: "Icebreaker",
+                image: "https://example.com/icebreaker.png",
+                value: "800",
+                rarity: "limited",
+                description: "Frozen sword that leaves a trail of ice as you swing it.",
+                demand: 75,
+                looks: 80
+            },
+            {
+                name: "Flamebrand",
+                image: "https://example.com/flamebrand.png",
+                value: "600",
+                rarity: "other",
+                description: "A fiery sword that burns enemies on contact.",
+                demand: 70,
+                looks: 75
+            },
+            {
+                name: "Tidehunter",
+                image: "https://example.com/tidehunter.png",
+                value: "550",
+                rarity: "other",
+                description: "Water-based sword that creates waves with each swing.",
+                demand: 65,
+                looks: 70
+            }
+        ];
+        
+        // DOM elements
+        const listView = document.getElementById('sword-list');
+        const gridView = document.getElementById('sword-grid');
+        const listViewBtn = document.getElementById('list-view-btn');
+        const gridViewBtn = document.getElementById('grid-view-btn');
+        const sortSelect = document.getElementById('sort-select');
+        const allBtn = document.getElementById('all-btn');
+        const godlyBtn = document.getElementById('godly-btn');
+        const limitedBtn = document.getElementById('limited-btn');
+        const otherBtn = document.getElementById('other-btn');
+        const modal = document.getElementById('sword-modal');
+        const closeModal = document.querySelector('.close-modal');
+        
+        // Current filter and sort state
+        let currentFilter = 'all';
+        let currentSort = 'name';
+        
+        // Initialize the sword list
+        function initSwordList() {
+            renderSwords();
+            
+            // Event listeners
+            listViewBtn.addEventListener('click', () => {
+                listView.classList.add('active');
+                gridView.classList.remove('active');
+                listViewBtn.classList.add('active');
+                gridViewBtn.classList.remove('active');
+            });
+            
+            gridViewBtn.addEventListener('click', () => {
+                listView.classList.remove('active');
+                gridView.classList.add('active');
+                listViewBtn.classList.remove('active');
+                gridViewBtn.classList.add('active');
+            });
+            
+            sortSelect.addEventListener('change', (e) => {
+                currentSort = e.target.value;
+                renderSwords();
+            });
+            
+            allBtn.addEventListener('click', () => {
+                currentFilter = 'all';
+                updateFilterButtons();
+                renderSwords();
+            });
+            
+            godlyBtn.addEventListener('click', () => {
+                currentFilter = 'godly';
+                updateFilterButtons();
+                renderSwords();
+            });
+            
+            limitedBtn.addEventListener('click', () => {
+                currentFilter = 'limited';
+                updateFilterButtons();
+                renderSwords();
+            });
+            
+            otherBtn.addEventListener('click', () => {
+                currentFilter = 'other';
+                updateFilterButtons();
+                renderSwords();
+            });
+            
+            closeModal.addEventListener('click', () => {
+                modal.style.display = 'none';
+            });
+            
+            window.addEventListener('click', (e) => {
+                if (e.target === modal) {
+                    modal.style.display = 'none';
+                }
+            });
+        }
+        
+        // Update active state of filter buttons
+        function updateFilterButtons() {
+            allBtn.classList.remove('active');
+            godlyBtn.classList.remove('active');
+            limitedBtn.classList.remove('active');
+            otherBtn.classList.remove('active');
+            
+            switch(currentFilter) {
+                case 'all':
+                    allBtn.classList.add('active');
+                    break;
+                case 'godly':
+                    godlyBtn.classList.add('active');
+                    break;
+                case 'limited':
+                    limitedBtn.classList.add('active');
+                    break;
+                case 'other':
+                    otherBtn.classList.add('active');
+                    break;
+            }
+        }
+        
+        // Filter swords based on current filter
+        function filterSwords() {
+            if (currentFilter === 'all') return swords;
+            return swords.filter(sword => sword.rarity === currentFilter);
+        }
+        
+        // Sort swords based on current sort option
+        function sortSwords(swordsToSort) {
+            return [...swordsToSort].sort((a, b) => {
+                switch(currentSort) {
+                    case 'name':
+                        return a.name.localeCompare(b.name);
+                    case 'value':
+                        return parseInt(b.value) - parseInt(a.value);
+                    case 'rarity':
+                        // Custom rarity order: godly > limited > other
+                        const rarityOrder = {godly: 3, limited: 2, other: 1};
+                        return rarityOrder[b.rarity] - rarityOrder[a.rarity] || a.name.localeCompare(b.name);
+                    default:
+                        return 0;
+                }
+            });
+        }
+        
+        // Render swords to both list and grid views
+        function renderSwords() {
+            const filteredSwords = filterSwords();
+            const sortedSwords = sortSwords(filteredSwords);
+            
+            // Clear current views
+            listView.innerHTML = '';
+            gridView.innerHTML = '';
+            
+            // Populate views
+            sortedSwords.forEach(sword => {
+                // Create list view item
+                const listItem = document.createElement('div');
+                listItem.className = `sword-item list ${sword.rarity}`;
+                listItem.innerHTML = `
+                    <img src="${sword.image}" alt="${sword.name}">
+                    <div class="sword-info">
+                        <div class="sword-name">${sword.name} <span class="rarity-label ${sword.rarity}-label">${sword.rarity.charAt(0).toUpperCase() + sword.rarity.slice(1)}</span></div>
+                        <div class="sword-value">Value: ${sword.value}</div>
+                    </div>
+                `;
+                listItem.addEventListener('click', () => openModal(sword));
+                listView.appendChild(listItem);
+                
+                // Create grid view item
+                const gridItem = document.createElement('div');
+                gridItem.className = `sword-item grid ${sword.rarity}`;
+                gridItem.innerHTML = `
+                    <img src="${sword.image}" alt="${sword.name}">
+                    <div class="sword-name">${sword.name}</div>
+                    <div class="sword-value">${sword.value}</div>
+                    <span class="rarity-label ${sword.rarity}-label">${sword.rarity.charAt(0).toUpperCase() + sword.rarity.slice(1)}</span>
+                `;
+                gridItem.addEventListener('click', () => openModal(sword));
+                gridView.appendChild(gridItem);
+            });
+        }
+        
+        // Open modal with sword details
+        function openModal(sword) {
+            document.getElementById('modal-img').src = sword.image;
+            document.getElementById('modal-name').textContent = sword.name;
+            document.getElementById('modal-value').textContent = `Value: ${sword.value}`;
+            document.getElementById('modal-description').textContent = sword.description;
+            
+            // Set rarity label
+            const rarityLabel = document.getElementById('modal-rarity');
+            rarityLabel.innerHTML = `<span class="rarity-label ${sword.rarity}-label">${sword.rarity.charAt(0).toUpperCase() + sword.rarity.slice(1)}</span>`;
+            
+            // Set rating bars
+            document.getElementById('demand-bar').style.width = `${sword.demand}%`;
+            document.getElementById('looks-bar').style.width = `${sword.looks}%`;
+            
+            modal.style.display = 'flex';
+        }
+        
+        // Initialize the app
+        initSwordList();
+    </script>
+</body>
+</html>
